@@ -105,18 +105,14 @@
         border-radius: 5px;
     }
     
-    .dropdown-ul li:not(.divide) {
+    .dropdown-ul li {
         height: 30px;
         line-height: 30px;
         cursor: pointer;
     }
     
-    .dropdown-ul li:not(.divide):hover {
+    .dropdown-ul li:hover {
         background-color: #4cb0f9;
-    }
-    
-    .divide {
-        border-bottom: 1px solid #269abc;
     }
     
     .option {
@@ -166,13 +162,10 @@
                     <div class="triangle"></div>
                 </div>
                 <ul class="dropdown-ul">
-                    <li id="one">4图4×4</li>
-                    <li class="divide"></li>
-                    <li id="two">8图4×4</li>
-                    <li class="divide"></li>
-                    <li id="three">9图6×6</li>
-                    <li class="divide"></li>
-                    <li id='four'>18图6×6</li>
+                    <li size="4" repetition="4">4图4×4</li>
+                    <li size="4" repetition="2">8图4×4</li>
+                    <li size="6" repetition="4">9图6×6</li>
+                    <li size="6" repetition="2">18图6×6</li>
                 </ul>
             </div>
         </div>
@@ -188,7 +181,6 @@
         createImg(size, repetition)
         bindEvent()
     }
-
 
     function createBox(wrap, size) {
         wrap.empty()
@@ -307,7 +299,6 @@
         })
     }
 
-
     function dislodge() {
         if (isDislodge()) {
             count = 0
@@ -371,7 +362,6 @@
         })
     }
 
-
     var wrap = $('#wrap')
     var size = 4
     var repetition = 4
@@ -381,39 +371,21 @@
     fitScreen()
     game(wrap, size, repetition)
 
-    $('#one').click(function() {
-        size = 4
-        repetition = 4
-        $('.text').text('4图4×4')
-        $('.dropdown-ul').hide()
-        game(wrap, size, repetition)
-    })
-
-    $('#two').click(function() {
-        size = 4
-        repetition = 2
-        $('.text').text('8图4×4')
-        $('.dropdown-ul').hide()
-        game(wrap, size, repetition)
-    })
-
-    $('#three').click(function() {
-        size = 6
-        repetition = 4
-        $('.text').text('9图6×6')
-        $('.dropdown-ul').hide()
-        game(wrap, size, repetition)
-    })
-    $('#four').click(function() {
-        size = 6
-        repetition = 2
-        $('.text').text('18图6×6')
+    $('.dropdown-ul').on('click', 'li', function() {
+        var size = $(this).attr('size')
+        var repetition = $(this).attr('repetition')
+        $('.text').text(size * size / repetition + '图' + size + '×' + size)
         $('.dropdown-ul').hide()
         game(wrap, size, repetition)
     })
 
     $('.dropdown-btn').click(function() {
         $('.dropdown-ul').toggle()
+        return false
+    })
+
+    $(document).click(function() {
+        $('.dropdown-ul').hide()
     })
 
     $('#reset').click(function() {
