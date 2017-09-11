@@ -4,6 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" 
+    content=" width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>记忆对消</title>
     <script src='http://libs.baidu.com/jquery/2.0.0/jquery.min.js'></script>
     <style>
@@ -346,10 +348,18 @@
         }
     }
 
+    function isPhone() {
+        if (/AppleWebKit.*Mobile/i.test(navigator.userAgent) || (/MIDP|SymbianOS|NOKIA|SAMSUNG|LG|NEC|TCL|Alcatel|BIRD|DBTEL|Dopod|PHILIPS|HAIER|LENOVO|MOT-|Nokia|SonyEricsson|SIE-|Amoi|ZTE/.test(navigator.userAgent))) {
+            return true
+        } else {
+            return false
+        }
+    }
+
     function fitScreen() {
-        var documentWidth = window.screen.availWidth;
+        var documentWidth = document.body.clientWidth;
         var wrapWidth = documentWidth * 0.92;
-        if (documentWidth > 500) {
+        if (documentWidth > 500 && !isPhone()) {
             wrapWidth = 500;
         }
         wrap.width(wrapWidth)
