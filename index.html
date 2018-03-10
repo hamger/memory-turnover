@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" 
     content=" width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>记忆对消</title>
-    <script src='http://libs.baidu.com/jquery/2.0.0/jquery.min.js'></script>
+    <title>记忆消消乐</title>
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
     <style>
     * {
         padding: 0;
@@ -38,11 +38,11 @@
     .front,
     .back {
         backface-visibility: hidden;
-        -webkit-transition: 0.6s ease-out;
-        -moz-transition: 0.6s ease-out;
-        -ms-transition: 0.6s ease-out;
-        -o-transition: 0.6s ease-out;
-        transition: 0.6s ease-out;
+        -webkit-transition: 0.3s ease-out;
+        -moz-transition: 0.3s ease-out;
+        -ms-transition: 0.3s ease-out;
+        -o-transition: 0.3s ease-out;
+        transition: 0.3s ease-out;
         -webkit-transform-style: preserve-3d;
         -moz-transform-style: preserve-3d;
         -ms-transform-style: preserve-3d;
@@ -176,29 +176,41 @@
         </div>
     </div>
     <script>
-    function game(wrap, size, repetition) {
-        fitScreen(wrap, size)
-        createBox(wrap, size)
-        positionBox(size)
-        createImg(size, repetition)
-        bindEvent()
+    function Game(option) {
+        this.wrap = $(option.wrap)
+        this.repetition = option.repetition || 4
+        this.size = option.size || 4
+        this.count = 0
+        this.total = this.size * this.size
+        this.fitSize()
+        this.createBox()
+        this.createImg()
+        this.bindEvent()
     }
 
-    function createBox(wrap, size) {
-        wrap.empty()
-        var boxWidth = wrap.width() / size
-        for (var i = 0; i < size * size; i++) {
-            wrap.append('<div class="box"><div class="front"><img src="img/defaul.jpg"></div><div class="back"><img src=""></div></div>')
+    // 确定容器大小
+    Game.prototype.fitSize = function () {
+        var documentWidth = document.body.clientWidth;
+        var wrapWidth = documentWidth * 0.92;
+        if (documentWidth > 500) wrapWidth = 500;
+        this.wrap.width(wrapWidth)
+        this.wrap.height(wrapWidth)
+    }
+
+    // 创建盒子
+    Game.prototype.createBox = function () {
+        this.wrap.empty()
+        var str = ''
+        for (var i = 0; i < this.total; i++) {
+            str += '<div class="box"><div class="front"><img src="img/defaul.jpg"></div><div class="back"><img src=""></div></div>'
         }
+        this.wrap.append(str)
+        var boxWidth = this.wrap.width() / this.size
         $('.box').width(boxWidth)
         $('.box').height(boxWidth)
-    }
-
-    function positionBox(size) {
         var index = 0;
-        var boxWidth = wrap.width() / size
-        for (var i = 0; i < size; i++) {
-            for (var j = 0; j < size; j++) {
+        for (var i = 0; i < this.size; i++) {
+            for (var j = 0; j < this.size; j++) {
                 $('.box').eq(index).css({
                     top: i * boxWidth + 'px',
                     left: j * boxWidth + 'px'
@@ -206,13 +218,21 @@
                 index++;
             }
         }
-    }
+    };
 
-    function createImg(size, repetition) {
-
-        assignImgArr(size, repetition)
-
-        for (var i = 0; i < size * size; i++) {
+    // 创建图片
+    Game.prototype.createImg = function () {
+        var picNum = this.total / this.repetition
+        var imgArr = []
+        for (var i = 0; i < picNum; i++) {
+            for (var j = 0; j < this.repetition; j++) {
+                imgArr.push(i)
+            }
+        }
+        imgArr.sort(function () {
+            return Math.random() > 0.5 ? 1 : -1
+        })
+        for (var i = 0; i < this.total; i++) {
             $('.box').eq(i).find('.back img').attr({
                 'src': 'img/' + imgArr[i] + '.png',
                 'index': imgArr[i]
@@ -220,173 +240,104 @@
         }
     }
 
-    function assignImgArr(size, repetition) {
-
-        imgArr = []
-
-        var picNum = size * size / repetition
-        for (var i = 0; i < picNum; i++) {
-            for (var j = 0; j < repetition; j++) {
-                imgArr.push(i)
-            }
-        }
-
-        imgArr = randomSort(imgArr)
-    }
-
-    function randomSort(arr) {
-        var currentIndex = arr.length,
-            randomIndex, tempValue
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            tempValue = arr[currentIndex]
-            arr[currentIndex] = arr[randomIndex]
-            arr[randomIndex] = tempValue
-        }
-        return arr
-    }
-
-    function bindEvent() {
-        $('.box').click(function() {
-            if ($(this).find('.back').css('zIndex') == 1) {
-                $(this).find('.back').css({
-                    'transform': 'rotateY(0deg)',
-                    'webkitTransform': 'rotateY(0deg)',
-                    'mozTransform': 'rotateY(0deg)',
-                    'msTransform': 'rotateY(0deg)',
-                    'oTransform': 'rotateY(0deg)',
-                    'zIndex': 2
-                })
-                $(this).find('.front').css({
-                    'transform': 'rotateY(180deg)',
-                    'webkitTransform': 'rotateY(180deg)',
-                    'mozTransform': 'rotateY(180deg)',
-                    'msTransform': 'rotateY(180deg)',
-                    'oTransform': 'rotateY(180deg)',
-                    'zIndex': 1
-                })
-                $(this).addClass('active')
-                count++
+    // 绑定事件
+    Game.prototype.bindEvent = function () {
+        var that = this;
+        this.wrap.off(); // 防止重复绑定点击事件
+        this.wrap.on('click', '.box', function () {
+            console.log(123);
+            if ($(this).hasClass('active')) {
+                that.close($(this))
             } else {
-                $(this).find('.back').css({
-                    'transform': 'rotateY(-180deg)',
-                    'webkitTransform': 'rotateY(-180deg)',
-                    'mozTransform': 'rotateY(-180deg)',
-                    'msTransform': 'rotateY(-180deg)',
-                    'oTransform': 'rotateY(-180deg)',
-                    'zIndex': 1
-                })
-                $(this).find('.front').css({
-                    'transform': 'rotateY(0deg)',
-                    'webkitTransform': 'rotateY(0deg)',
-                    'mozTransform': 'rotateY(0deg)',
-                    'msTransform': 'rotateY(0deg)',
-                    'oTransform': 'rotateY(0deg)',
-                    'zIndex': 2
-                })
-                $(this).removeClass('active')
-                count--
+                that.open($(this))
+                if (that.count === 2) {
+                    var pic1 = $('.active').find('.back img').attr('index')
+                    var pic2 = $(this).find('.back img').attr('index')
+                    if (pic1 === pic2) {
+                        $('.active').remove()
+                        $(this).remove()
+                        that.count = 0
+                        if ($('.box').length === 0) {
+                            $('#reveal').text('游戏结束，你真棒！').css('color', '#FA2F2F')
+                        }
+                    } else {
+                        that.close($('.active'))
+                        $(this).addClass('active')
+                    }
+                } else {
+                    $(this).addClass('active')
+                }
             }
         })
+    }
 
-        document.addEventListener('mousedown', function() {
-            dislodge()
-            checkOver()
+    // 翻开
+    Game.prototype.open = function (dom) {
+        dom.find('.back').css({
+            'transform': 'rotateY(0deg)',
+            'webkitTransform': 'rotateY(0deg)',
+            'mozTransform': 'rotateY(0deg)',
+            'msTransform': 'rotateY(0deg)',
+            'oTransform': 'rotateY(0deg)',
+            'zIndex': 2
         })
-
-        document.addEventListener('touchstart', function() {
-            dislodge()
-            checkOver()
+        dom.find('.front').css({
+            'transform': 'rotateY(180deg)',
+            'webkitTransform': 'rotateY(180deg)',
+            'mozTransform': 'rotateY(180deg)',
+            'msTransform': 'rotateY(180deg)',
+            'oTransform': 'rotateY(180deg)',
+            'zIndex': 1
         })
+        this.count++
     }
 
-    function dislodge() {
-        if (isDislodge()) {
-            count = 0
-            $('.active').remove()
-        }
-    }
-
-    function isDislodge() {
-        if (count == 2) {
-            var pic1 = $('.active').eq(0).find('.back img').attr('index')
-            var pic2 = $('.active').eq(1).find('.back img').attr('index')
-            if (pic1 == pic2) {
-                return true
-            } else {
-                $('.active').find('.back').css({
-                    'transform': 'rotateY(-180deg)',
-                    'webkitTransform': 'rotateY(-180deg)',
-                    'mozTransform': 'rotateY(-180deg)',
-                    'msTransform': 'rotateY(-180deg)',
-                    'oTransform': 'rotateY(-180deg)',
-                    'zIndex': 1
-                })
-                $('.active').find('.front').css({
-                    'transform': 'rotateY(0deg)',
-                    'webkitTransform': 'rotateY(0deg)',
-                    'mozTransform': 'rotateY(0deg)',
-                    'msTransform': 'rotateY(0deg)',
-                    'oTransform': 'rotateY(0deg)',
-                    'zIndex': 2
-                })
-                $('.active').removeClass('active')
-                count = 0
-                return false
-            }
-        } else {
-            return false
-        }
-    }
-
-    function checkOver() {
-        if ($('.box').length == 0) {
-            $('#reveal').text('游戏结束，你真棒！').css('color', '#FA2F2F')
-        } else {
-            $('#reveal').text('消消看...').css('color', '#000')
-        }
-    }
-
-    function isPhone() {
-        if (/AppleWebKit.*Mobile/i.test(navigator.userAgent) || (/MIDP|SymbianOS|NOKIA|SAMSUNG|LG|NEC|TCL|Alcatel|BIRD|DBTEL|Dopod|PHILIPS|HAIER|LENOVO|MOT-|Nokia|SonyEricsson|SIE-|Amoi|ZTE/.test(navigator.userAgent))) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    function fitScreen() {
-        var documentWidth = document.body.clientWidth;
-        var wrapWidth = documentWidth * 0.92;
-        if (documentWidth > 500 && !isPhone()) {
-            wrapWidth = 500;
-        }
-        wrap.width(wrapWidth)
-        wrap.height(wrapWidth)
-        $('.btns-bottom').width(wrapWidth)
-        $('.btn-bottom').width(wrapWidth / 2)
-        $('.option').css({
-            'width': wrapWidth / 3,
-            'margin': '0 auto'
+    // 闭合
+    Game.prototype.close = function (dom) {
+        dom.find('.back').css({
+            'transform': 'rotateY(-180deg)',
+            'webkitTransform': 'rotateY(-180deg)',
+            'mozTransform': 'rotateY(-180deg)',
+            'msTransform': 'rotateY(-180deg)',
+            'oTransform': 'rotateY(-180deg)',
+            'zIndex': 1
         })
+        dom.find('.front').css({
+            'transform': 'rotateY(0deg)',
+            'webkitTransform': 'rotateY(0deg)',
+            'mozTransform': 'rotateY(0deg)',
+            'msTransform': 'rotateY(0deg)',
+            'oTransform': 'rotateY(0deg)',
+            'zIndex': 2
+        })
+        dom.removeClass('active')
+        this.count--
     }
 
-    var wrap = $('#wrap')
+    new Game({wrap: '#wrap'})
+
+    var wrapWidth = $('#wrap').width()
+    $('.btns-bottom').width(wrapWidth)
+    $('.btn-bottom').width(wrapWidth / 2)
+    $('.option').css({
+        'width': wrapWidth / 3,
+        'margin': '0 auto'
+    })
+
     var size = 4
     var repetition = 4
-    var imgArr = []
-    var count = 0
-
-    fitScreen()
-    game(wrap, size, repetition)
 
     $('.dropdown-ul').on('click', 'li', function() {
-        var size = $(this).attr('size')
-        var repetition = $(this).attr('repetition')
+        size = $(this).attr('size')
+        repetition = $(this).attr('repetition')
         $('.text').text(size * size / repetition + '图' + size + '×' + size)
         $('.dropdown-ul').hide()
-        game(wrap, size, repetition)
+        new Game({
+            wrap: '#wrap',
+            size: size,
+            repetition: repetition
+        })
+        $('#reveal').text('消消看...').css('color', '#000')
     })
 
     $('.dropdown-btn').click(function() {
@@ -399,7 +350,12 @@
     })
 
     $('#reset').click(function() {
-        game(wrap, size, repetition)
+        new Game({
+            wrap: '#wrap',
+            size: size,
+            repetition: repetition
+        })
+        $('#reveal').text('消消看...').css('color', '#000')
     })
     </script>
 </body>
